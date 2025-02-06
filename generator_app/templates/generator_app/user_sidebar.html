@@ -1,0 +1,32 @@
+<!--  Profile Sidebar Starts -->
+<nav class="dashboard-menu">
+    <ul>
+        <li>
+            <a href="{% url 'user_dashboard' %}" class="btn btn-ns btn-ns-secondary" id="dashboard-btn">
+                <i class="fas fa-columns"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'categories' %}" class="btn btn-ns btn-ns-secondary" id="create-new-document-btn">
+                <i class="fas fa-bookmark"></i>
+                <span>Create new document</span>
+            </a>
+        </li>
+        {% if user.is_authenticated and user.is_staff %}
+        <li>
+            <a href="{% url 'admin_categories' %}" class="btn btn-ns btn-ns-secondary" id="login-as-admin-btn">
+                <i class="fas fa-user-friends"></i>
+                <span><strong>Admin Panel</strong></span>
+            </a>
+        </li>
+        {%endif%}
+        <li>
+            <a href="{% url 'logout' %}" class="btn btn-ns btn-ns-secondary" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+<!-- / Profile Sidebar Ends -->

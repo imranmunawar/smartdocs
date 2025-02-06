@@ -1,0 +1,3 @@
+project: document-creator
+backend: lf://default
+default_environment: dev

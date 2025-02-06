@@ -1,0 +1,142 @@
+{% extends 'generator_app/base.html' %}
+{% load static %}
+{% block sidebar %}
+{% include "generator_app/admin_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+
+    <div class="row navbar-secondary">
+        <div class="col-lg-12 col-md-12 col-sm-12">
+            <div class="form-inline">
+                <a href="{{return_url}}" class="btn btn-sm btn-custom-primary" style="margin-top: -7px;"><i class="fa fa-chevron-left"></i> Return</a>
+                <h3 style="display: inline-block; margin-left: 10px;">Questions and Placeholders</h3>
+            </div>
+        </div>
+    </div>
+						
+    <div class="row mt-4">
+        <div class="col-12">
+            {% include 'generator_app/messages.html' %}
+        </div>
+        <div class="col-12 text-center">
+            <div class="card">
+                <div class="card-body" style="padding: 10px;">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12 col-xl-12 d-flex align-items-center" style="text-align: left;">                      
+                            <h3 style="margin-right: 10px; margin-left: 10px; padding-top: 6px;">{{navigation_text}}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if not questions %}
+        <div class="col-12 text-center">
+            <div class="card">
+                <div class="card-body" style="padding: 100px;">
+                    <h3 class="font-bold text-dark">No record found</h3>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div id="pat_appointments" class="tab-pane fade show active">
+                <div class="card card-table mb-5">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Actions</th>
+                                        <th>Questions</th>
+                                        <th>Placeholder</th>
+                                        <th>Type</th>
+                                        <th>Section(s)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for question in questions %}
+                                    <tr>
+                                        <td>
+                                            <div class="table-action">
+                                                <a href="#update_question_modal_{{ question.question.id }}" class="btn btn-sm bg-primary-light" data-bs-toggle="modal" tooltip="Edit Question" onclick="event.stopPropagation();">
+                                                    <i class="fa-solid fa-wrench"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td class="question-column">
+                                            {% if not question.question.section.parent_section.is_active or not question.question.section.is_active or not question.question.is_active %}
+                                                <span style="color: red; text-decoration: line-through;">
+                                                    {% if question.question.question|length <= 30 %}
+                                                        {{ question.question.question }}
+                                                    {% else %}
+                                                        <span data-bs-toggle="tooltip" title="{{ question.question.question }}" data-bs-placement="top">
+                                                            {{ question.question.question|truncatechars:30 }}
+                                                        </span>
+                                                    {% endif %}
+                                                </span>
+                                            {% else %}
+                                                {% if question.question.question|length <= 30 %}
+                                                    {{ question.question.question }}
+                                                {% else %}
+                                                    <span data-bs-toggle="tooltip" title="{{ question.question.question }}" data-bs-placement="top">
+                                                        {{ question.question.question|truncatechars:30 }}
+                                                    </span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="placeholder-column">
+                                            {{ question.question.placeholder }}
+                                            {% if not question.question.section.parent_section.is_active or not question.question.section.is_active or not question.question.is_active %}
+                                                [INACTIVE]
+                                            {% endif %}
+                                        </td>
+                                        <td>{{question.question.question_type}}</td>
+                                        <td class="sections-column">
+                                            <a href="/view_section_subsections/{{ template_id }}/{{ question.question.section.parent_section.id }}">
+                                                {% if not question.question.section.parent_section.is_active %}
+                                                    <span style="color: red; text-decoration: line-through;">
+                                                        {{ question.question.section.parent_section.name }}
+                                                    </span>
+                                                {% else %}
+                                                    {{ question.question.section.parent_section.name }}
+                                                {% endif %}
+                                            </a>
+                                            /
+                                            <a href="/get_root_questions/{{ template_id }}/{{ question.question.section.id }}">
+                                                {% if not question.question.section.is_active or not question.question.section.parent_section.is_active%}
+                                                    <span style="color: red; text-decoration: line-through;">
+                                                        {{ question.question.section.name }}
+                                                    </span>
+                                                {% else %}
+                                                    {{ question.question.section.name }}
+                                                {% endif %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    </div>
+    </div>
+    </div>
+    </div>
+
+{% include 'generator_app/edit_questions.html' %}
+
+{% endblock %}
+
+{% block static %}
+    <script>
+        $(document).ready(function() {
+            $("#manage-categories-btn").addClass("btn-ns-primary");
+            $("#manage-categories-btn").removeClass("btn-ns-secondary");
+        });
+    </script>
+{% endblock %}

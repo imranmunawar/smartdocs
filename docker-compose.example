@@ -1,0 +1,30 @@
+version: '3'
+services:
+  db:
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=<database_name>
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=<database_password>
+    volumes:
+      - /tmp/app/postgresql:/var/run/postgresql
+      - ./db:/var/lib/postgresql/data
+  document_generator:
+    image: document_generator:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - ./document_generator/.env
+    command: ["/app/entrypoint.sh"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /tmp/app/postgresql:/run/postgresql
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db

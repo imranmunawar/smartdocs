@@ -1,0 +1,912 @@
+{% extends 'generator_app/base.html' %}
+{% load static %}
+{% load general_filters %}
+{% block sidebar %}
+{% include "generator_app/admin_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+
+    <div class="row navbar-secondary">
+        <div class="col-lg-6 col-md-6 col-sm-6">
+            <h3>Categories</h3>
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-6" style="text-align: right; margin-top: -7px;">
+            {% if current_category %}
+            <a href="#create_category_modal" class="btn btn-sm btn-custom-primary" data-bs-toggle="modal">New Category</a>
+            <a href="#create_template_modal" class="btn btn-sm btn-custom-primary" data-bs-toggle="modal">New Template</a>
+            <button id="saveSequenceBtnCategories" class="btn btn-sm btn-custom-primary" disabled>Save Category Sequence</button>
+            <button id="saveSequenceBtnTemplates" class="btn btn-sm btn-custom-primary" disabled>Save Template Sequence</button>
+            {% else %}
+            <a href="#create_category_modal" class="btn btn-sm btn-custom-primary" data-bs-toggle="modal">New Category</a>
+            <button id="saveSequenceBtnCategories" class="btn btn-sm btn-custom-primary" disabled>Save Category Sequence</button>
+            {% endif %}
+        </div>
+    </div>
+						
+    <div class="row mt-4">
+        <div class="col-12">
+            {% include 'generator_app/messages.html' %}
+        </div>
+        
+        <div class="col-12 text-center">
+            <div class="card">
+                <div class="card-body" style="padding: 10px;">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12 col-xl-12 d-flex align-items-center" style="text-align: left;">
+                            {% if category_hierarchy|length > 0 %}
+                                <a href="{% url 'admin_categories' %}">Categories</a>
+                            {% else %}
+                                <a href="{% url 'admin_categories' %}"><h4 style="margin-right: 10px; margin-left: 10px; padding-top: 6px;">Categories</h4></a>
+                            {% endif %}
+                            <div class="d-flex flex-wrap">
+                                {% for category_h in category_hierarchy %}
+                                <div class="d-flex align-items-center mr-3">
+
+                                    {% if forloop.last %}
+                                        <p style="margin: 0 5px;">&gt;</p>
+                                        <a href="{% url 'admin_child_categories' category_h.id %}" class="category-link"><h4 style="margin-right: 10px; margin-left: 10px; padding-top: 6px;">{{ category_h.name }}</h4></a>
+                                    {% else %}
+                                        <p style="margin: 0 5px;">&gt;</p>
+                                        <a href="{% url 'admin_child_categories' category_h.id %}" class="category-link">{{ category_h.name }}</a>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>											
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if not categories and not templates %}
+        <div class="col-12 text-center">
+            <div class="card">
+                <div class="card-body" style="padding: 100px;">
+                    <h3 class="font-bold text-dark">No Available Content for this Category</h3>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if categories%}
+		<div class="row">
+            <div class="card-body pt-0">
+                <nav class="user-tabs mb-4">
+                    <ul class="nav nav-tabs nav-tabs-bottom nav-justified">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab">Available Categories</a>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- /Tab Menu -->
+
+                <!-- Tab Content -->
+                <!-- Appointment Tab -->
+                <div class="tab-content pt-0">
+                    <div id="pat_appointments" class="tab-pane fade show active">
+                        <div class="card card-table mb-0">
+                            <div class="card-body">
+                                <div class="table-responsive">
+
+                                    <table class="table table-hover table-center mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Categories</th>
+                                                <th>Sequence</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="sortable-categories">
+                                            {% for category in categories %}
+                                            <tr id="category_{{ category.id }}" data-sequence="{{ category.sequence_id }}" style="cursor: pointer;">
+                                                <td>{{ category.name }}</td>
+                                                <td>{{ category.sequence_id }}</td>
+                                                <td>
+                                                    <div class="table-action">
+                                                        <a href="#update_category_modal_{{category.id}}" class="btn btn-sm bg-primary-light" data-bs-toggle="modal" tooltip="Update Categories" onclick="event.stopPropagation();">
+                                                            <i class="fa-solid fa-edit"></i>
+                                                        </a>
+                                                        <a href="#remove_category_modal_{{ category.id }}" class="btn btn-sm bg-danger-light" data-bs-toggle="modal" tooltip="Delete" onclick="event.stopPropagation();">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /Appointment Tab -->
+                </div>
+                <!-- Tab Content -->
+            </div>
+        </div>
+        
+        {% endif%}
+
+        {% if templates %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body pt-0">
+                    <nav class="user-tabs mb-4">
+                        <ul class="nav nav-tabs nav-tabs-bottom nav-justified">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab">Available Templates</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <!-- /Tab Menu -->
+
+                    <!-- Tab Content -->
+                    <div class="tab-content pt-0">
+
+                        <!-- Appointment Tab -->
+                        <div id="pat_appointments" class="tab-pane fade show active">
+                            <div class="card card-table mb-0">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Templates</th>
+                                                    <th style="text-align: center; vertical-align: middle;">Sequence</th>
+                                                    <th style="text-align: center; vertical-align: middle;">Access Level</th>
+                                                    <th style="text-align: center; vertical-align: middle;">Template Status</th>
+                                                    <th style="text-align: center; vertical-align: middle;">Created By</th>
+                                                    <th style="text-align: center; vertical-align: middle;">Created At</th>
+                                                    <th style="text-align: center; vertical-align: middle;">Last Modified</th>
+                                                    <th style="text-align: center; vertical-align: middle;">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="sortable-templates">
+                                                {% for template in templates %}
+                                                <tr id="template_{{ template.id }}" data-sequence="{{ template.sequence_id }}" style="cursor: pointer;">
+                                                    <td>{{ template.name }}</td>
+                                                    <td>{{ template.sequence_id }}</td>
+                                                    <td style="text-align: center; vertical-align: middle;">{{ template.get_access_level_display }}</td>
+                                                    <td style="text-align: center; vertical-align: middle;">
+                                                        {% if template.is_active %}
+                                                        <span class="badge rounded-pill bg-success-light">Active</span>
+                                                        {% else %}
+                                                        <span class="badge rounded-pill bg-danger-light">Inactive</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td style="text-align: center; vertical-align: middle;">{{ template.user.username }}</td>
+                                                    <td style="text-align: center; vertical-align: middle;">
+                                                        {% if template.created_at %}
+                                                        <span class="datetime hidden" data-datetime="{{ template.created_at|date:'Y-m-d H:i' }}"></span>
+                                                        {% else %}
+                                                        <span class="no-datetime hidden">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td style="text-align: center; vertical-align: middle;">
+                                                        {% if template.last_modified %}
+                                                        <span class="datetime hidden" data-datetime="{{ template.last_modified|date:'Y-m-d H:i' }}"></span>
+                                                        {% else %}
+                                                        <span class="no-datetime hidden">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td style="text-align: center; vertical-align: middle;">
+                                                        <div class="table-action">
+                                                            {% comment %} <a href="{% url 'view_template_sections' template.id %}" class="btn btn-sm custom-view-button" tooltip="View Template" onclick="event.stopPropagation();">
+                                                                <i class="fa-solid fa-eye"></i>
+                                                            </a> {% endcomment %}
+                                                            <a href="{% url 'get_template_questions' template.id %}" class="btn btn-sm bg-primary-light" tooltip="Template Questions and Placeholders" onclick="event.stopPropagation();">
+                                                                <i class="fa-solid fa-question" aria-hidden="true"></i>
+                                                            </a>
+                                                            <a href="#update_template_modal_{{ template.id }}" class="btn btn-sm bg-primary-light" data-bs-toggle="modal" tooltip="Update Template" onclick="event.stopPropagation();">
+                                                                <i class="fa-solid fa-edit"></i>
+                                                            </a>
+                                                            <a href="#duplicate_template_modal_{{ template.id }}" class="btn btn-sm bg-info-light" data-bs-toggle="modal" tooltip="Duplicate Template" onclick="event.stopPropagation();">
+                                                                <i class="far fa-copy"></i>
+                                                            </a>
+                                                            <a id="{{ template.id }}" class="btn btn-sm bg-primary-light btn-download" data-bs-toggle="modal" tooltip="Download Word Template" onclick="event.stopPropagation();">
+                                                                <i class="fa-solid fa-file-word"></i>
+                                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                                                            </a>
+                                                            <a id="{{ template.id }}" class="btn btn-sm bg-primary-light btn-download-pdf" data-bs-toggle="modal" tooltip="Download PDF Template" onclick="event.stopPropagation();">
+                                                                <i class="fa-solid fa-file-pdf"></i>
+                                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                                                            </a>
+                                                            <a href="#remove_template_modal_{{ template.id }}" class="btn btn-sm bg-danger-light" data-bs-toggle="modal" tooltip="Delete Template" onclick="event.stopPropagation();">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /Appointment Tab -->
+                    </div>
+                    <!-- Tab Content -->
+                </div>
+            </div>
+        </div>
+        {%endif%}
+	</div>
+	</div>
+	</div>
+	</div>
+	</div>
+
+    <!-- CREATE TEMPLATE MODAL -->
+    <div class="modal fade" id="create_template_modal" style="display: none; z-index:100000" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="template">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-content p-2">
+                        <form  action="/create_template" method="post" enctype="multipart/form-data" onsubmit="return validateCreateTemplateForm(this)">
+                            {% csrf_token %}
+                            <h4 class="modal-title">Create Template</h4>
+                            <div class="mb-3">
+                                    <label class="mb-2">Please enter the name of the Template</label>
+                                    <input type="text" name="template_name" class="form-control" placeholder="Template" required>
+                                    <input type="text" name="category_id" class="form-control" value="{{current_category}}" style="display: none;">
+                                    <input type="file" name="file" accept=".docx">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="access_level">Access Level:</label>
+                                <select name="access_level" id="access_level" class="form-select form-control">
+                                    <option value="free">Level 0</option>
+                                    <option value="level-1">Level 1</option>
+                                    <option value="level-2">Level 2</option>     
+                                    <option value="level-3">Level 3</option> 
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="sequence_id">Sequence ID:</label>
+                                <input type="number" name="sequence_id" id="sequence_id" class="form-control" value="{{templates_max_count}}" min="0">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary">Create Template </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEMPLATE UPDATE MODALS -->
+    {% for template in templates%}
+    <div class="modal fade" id="update_template_modal_{{template.id}}" style="display: none; z-index:100000" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="template">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-content p-2">
+                        <form  action="/update_template" method="post" enctype="multipart/form-data" onsubmit="return UpdateValidateFileType{{template.id}}(this)">
+                            {% csrf_token %}
+                            <h4 class="modal-title">Update Template</h4>
+                            <div class="mb-3">
+                                    <label class="mb-2">Please enter the name of the Template</label>
+                                    <input type="text" name="template_name" class="form-control" placeholder="Template" value="{{template.name}}">
+                                    <input type="text" name="category_id" class="form-control" value="{{current_category}}" style="display: none;">
+                                    <input type="text" name="template_id" class="form-control" value="{{template.id}}" style="display: none;">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="is_active">Is Template Active?:</label>
+                                <select name="is_active" id="is_active" class="form-select form-control">
+                                    <option value="True" {% if template.is_active %}selected{% endif %}>Yes</option>
+                                    <option value="False" {% if not template.is_active %}selected{% endif %}>No</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="access_level">Access Level:</label>
+                                <select name="access_level" id="access_level" class="form-select form-control">
+                                    <option value="free" {% if template.access_level == 'free' %}selected{% endif %}>Level 0</option>
+                                    <option value="level-1" {% if template.access_level == 'level-1' %}selected{% endif %}>Level 1</option>
+                                    <option value="level-2" {% if template.access_level == 'level-2' %}selected{% endif %}>Level 2</option>
+                                    <option value="level-3" {% if template.access_level == 'level-3' %}selected{% endif %}>Level 3</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="category">Category:</label>
+                                <select name="category_id" id="category" class="form-select form-control">
+                                    <option value="{{ template.category.id }}">{{ template.category.name }}</option>
+                                    {% for category in hierarchical_categories %}
+                                    <option value="{{ category.category.id }}">{{ category.level|times:"--" }} {{ category.category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                    <label class="mb-2">Please upload the template document</label>
+                                    <input type="file" name="file" accept=".docx">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="sequence_id">Sequence ID:</label>
+                                <input type="number" name="sequence_id" id="sequence_id" class="form-control" value="{{template.sequence_id}}" min="0">
+                            </div>
+
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary">Update Template </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {%endfor%}
+
+    <!-- CREATE CATEGORY MODAL -->
+    <div class="modal fade" id="create_category_modal" style="display: none; z-index:100000" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="template">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-content p-2">
+                        <form  action="/create_category" method="post">
+                            {% csrf_token %}
+                            <h4 class="modal-title">Create Category Here</h4>
+                            <div class="mb-3">
+                                    <label class="mb-2">Please enter the name of the Category</label>
+                                    <input type="text" name="category_name" class="form-control" placeholder="Category">
+                                    <input type="text" name="parent_category_id" class="form-control" value="{{current_category}}" style="display: none;">
+                            </div>
+                            <div class="mb-3">
+                                <label for="sequence_id">Sequence ID:</label>
+                                <input type="number" name="sequence_id" id="sequence_id" class="form-control" value="{{categories_max_count}}" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary">Create Category </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY UPDATE MODALS -->
+    {% for category in categories %}
+    <div class="modal fade" id="update_category_modal_{{category.id}}" style="display: none; z-index:100000" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="template">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-content p-2">
+                        <form  action="/update_category" method="post">
+                            {% csrf_token %}
+                            <h4 class="modal-title">Update Category</h4>
+                            <div class="mb-3">
+                                    <label class="mb-2">Please enter the name of the Category</label>
+                                    <input type="text" name="category_name" class="form-control" placeholder="Category" value="{{category.name}}">
+                                    <input type="text" name="category_id" class="form-control" value="{{category.id}}" style="display: none;">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="sequence_id">Sequence ID:</label>
+                                <input type="number" name="sequence_id" id="sequence_id" class="form-control" value="{{category.sequence_id}}" min="0">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary">Update Category </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {%endfor%}
+
+    <!-- TEMPLATE DELETE MODALS -->
+    {% for template in templates%}
+    <div class="modal fade" id="remove_template_modal_{{template.id}}" style="display: none; z-index:100000" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="template">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-content p-2">
+                        <form  action="/remove_template/" method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                            <h4 class="modal-title">Are you sure you want to remove the template: "{{template.name}}" along with the following documents:</h4>
+                            {% with user_documents=template_documents|get_item_name:template.id %}
+                                {% for user_document in user_documents %}
+                                    <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333; margin-bottom: 5px; border: 1px solid #ccc; padding: 10px;">{{ user_document }}</p>
+                                {% endfor %}
+                            {% endwith %}
+                            </div>
+                            <input type="text" name="template_id" class="form-control" value="{{template.id}}" style="display: none;">
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel </button>
+                                <button type="submit" class="btn btn-danger">Delete </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <!-- CATEGORY DELETE MODALS -->
+    {% for category in categories%}
+    <div class="modal fade" id="remove_category_modal_{{category.id}}" style="display: none; z-index:100000" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="template">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-content p-2">
+                        <form  action="/remove_category/" method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                            {% if category not in empty_categories %}
+                            <h4 class="modal-title">Are you sure you want to remove the category: "{{category.name}}", If yes please select a new category to assign associated categories and templates:</h4>
+                            <div class="mb-3">
+                                <select name="associate_category" id="associate_category" class="form-select form-control" required>
+                                    <option value="">Available categories</option>
+                                    {% for new_category in hierarchical_categories %}
+                                        {% if new_category.category.id != category.id%}
+                                            <option value="{{new_category.category.id}}">{{ new_category.level|times:"--" }} {{ new_category.category.name }}</option>
+                                            {% else %}
+                                            <option value="{{new_category.category.id}}" disabled>{{ new_category.level|times:"--" }} {{ new_category.category.name }}</option>
+                                        {%endif%}
+                                    {% endfor%}
+                                </select>
+                            </div>
+                            {% else %}
+                            <h4 class="modal-title">Are you sure you want to remove the category: "{{category.name}}"</h4>
+                            <input type="text" name="is_empty_category" id="is_empty_category" style="display: none;" value="True">
+                            {% endif %}
+                            </div>
+                            <input type="text" name="category_id" class="form-control" value="{{category.id}}" style="display: none;">
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel </button>
+                                <button type="submit" class="btn btn-danger">Delete </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Duplicate Templates Modal -->
+    {% for template in templates %}
+    <div class="modal fade" id="duplicate_template_modal_{{template.id}}" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-content p-2">
+                        <form action="/duplicate_template" method="post" enctype="multipart/form-data" onsubmit="return DuplicateValidateFileType{{template.id}}(this)">
+                            {% csrf_token %}
+                            <h4 class="modal-title">Duplicate Template</h4>
+                            <div class="mb-3">
+                                <label class="mb-2">Please enter the name of the template</label>
+                                <input type="text" name="template_name" class="form-control" placeholder="Template Name" required pattern="^(?!\s*$).+">
+                                <input type="text" name="template_id" class="form-control" value="{{template.id}}" style="display: none;">
+                            </div>
+                            <div class="mb-3">
+                                <label class="mb-2">Enter template file.</label><br>
+                                <input type="file" name="file" accept=".docx">
+                            </div>
+                            <div class="mb-3">
+                                <label class="mb-2">Duplicate Template Questions as well?</label>
+                                <div>
+                                    <input type="radio" id="duplicate_yes" name="duplicate_questions" value="true" required>
+                                    <label for="duplicate_yes">Yes</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="duplicate_no" name="duplicate_questions" value="false" required>
+                                    <label for="duplicate_no">No</label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary">Create Template </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+
+{% endblock %}
+
+{% block static %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+            var datetimeElements = document.querySelectorAll('.datetime');
+
+            datetimeElements.forEach(function(element) {
+                var datetimeString = element.getAttribute('data-datetime');
+
+                if (datetimeString) {
+                     var date = new Date(datetimeString + ' UTC');
+
+                    var options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false };
+                    
+                    var localDateString = date.toLocaleDateString('en-CA', options).replace(',', '');
+                    
+                    element.innerText = localDateString;
+                } else {
+                      element.innerText = '-';
+                }
+                element.classList.remove('hidden');
+            });
+        });
+
+    function validateCreateTemplateForm(form) {
+        
+        const templateName = form.template_name.value.trim();
+        if (templateName === "") {
+            $('#create_template_modal').modal('toggle');
+            title = 'Error';
+            icon = 'error';
+            text = "Template name cannot be empty.";
+            Swal.fire({
+                title: title,
+                icon: icon,
+                html: text,
+                confirmButtonText: 'OK',
+                allowOutsideClick: false, 
+                allowEscapeKey: false 
+            }).then((result) => {
+                $('#create_template_modal').modal('toggle');
+            });
+            return false;
+        }
+        return validateFileType(form); 
+    }
+
+
+    $(document).ready(function() {
+        $(".btn-download").on("click", function() {
+            var templateId = $(this).attr("id");
+            var timestamp = new Date().getTime();
+            var documentName = `${timestamp}_${templateId}`;
+            var buttonElement = $(this); // Capture the button element
+            downloadDocument(templateId, documentName, buttonElement);
+        });
+
+        $(".btn-download-pdf").on("click", function() {
+            var templateId = $(this).attr("id");
+            var timestamp = new Date().getTime();
+            var documentName = `${timestamp}_${templateId}`;
+            var buttonElement = $(this); // Capture the button element
+            downloadDocumentPDF(templateId, documentName, buttonElement);
+        });
+
+        function downloadDocument(templateId, documentName, buttonElement) {
+            var postData = {
+                template_id: templateId,
+                document_name: documentName
+            };
+            var spinner = buttonElement.find(".spinner-border");
+            spinner.show();
+            fetch("/download_dummy_document/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(postData)
+            })
+            .then((response) => {
+                spinner.hide();
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                // Extract filename from Content-Disposition header
+                var filename = "";
+                var contentDisposition = response.headers.get("Content-Disposition");
+                if (contentDisposition && contentDisposition.indexOf("attachment") !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(contentDisposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, "");
+                    }
+                }
+                return response.blob().then((blob) => ({ blob, filename }));
+            })
+            .then(({ blob, filename }) => {
+                if (!blob) {
+                    throw new Error("Blob data is empty");
+                }
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement("a");
+                a.href = url;
+                // Set the downloaded file name if available, otherwise let browser handle it
+                if (filename) {
+                    a.download = filename;
+                }
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                console.log("Download initiated successfully");
+            })
+            .catch((error) => {
+                spinner.hide(); // Ensure the spinner is hidden in case of error
+                console.error("Error occurred while downloading document:", error);
+            });
+        }
+
+        function downloadDocumentPDF(templateId, documentName, buttonElement) {
+            var postData = {
+                template_id: templateId,
+                document_name: documentName
+            };
+            var spinner = buttonElement.find(".spinner-border");
+            spinner.show();
+            fetch("/download_dummy_document_pdf/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(postData)
+            })
+            .then((response) => {
+                spinner.hide();
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                // Extract filename from Content-Disposition header
+                var filename = "";
+                var contentDisposition = response.headers.get("Content-Disposition");
+                if (contentDisposition && contentDisposition.indexOf("attachment") !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(contentDisposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, "");
+                    }
+                }
+                return response.blob().then((blob) => ({ blob, filename }));
+            })
+            .then(({ blob, filename }) => {
+                if (!blob) {
+                    throw new Error("Blob data is empty");
+                }
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement("a");
+                a.href = url;
+                // Set the downloaded file name if available, otherwise let browser handle it
+                if (filename) {
+                    a.download = filename;
+                }
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                console.log("Download initiated successfully");
+            })
+            .catch((error) => {
+                spinner.hide(); // Ensure the spinner is hidden in case of error
+                console.error("Error occurred while downloading document:", error);
+            });
+        }
+
+        $("#manage-categories-btn").addClass("btn-ns-primary");
+        $("#manage-categories-btn").removeClass("btn-ns-secondary");
+
+
+        //////////////////////////////////Category Drag sequence starts here//////////////////////////////////////
+        var catIsDragging = false;
+        var catSequenceChanged = false;
+
+        // Initialize sortable functionality for categories
+        $("#sortable-categories").sortable({
+            update: function (event, ui) {
+                catIsDragging = true;
+                catSequenceChanged = true;
+                $("#saveSequenceBtnCategories").prop("disabled", false);
+            },
+            stop: function (event, ui) {
+                setTimeout(function () {
+                    catIsDragging = false;
+                }, 100);
+            }
+        }).disableSelection();
+
+        $("#sortable-categories tr").click(function(event) {
+            if (!catIsDragging) {
+                var categoryId = $(this).attr("id").replace("category_", "");
+
+                var redirectUrl = '/admin_categories/category_id'
+                    .replace('category_id', categoryId)
+
+                window.location.href = redirectUrl;
+            }
+        });
+
+        // Save button click event for categories
+        $("#saveSequenceBtnCategories").click(function () {
+            var sequenceData = [];
+
+            $("#sortable-categories tr").each(function () {
+                var categoryId = $(this).attr("id").replace("category_", "");
+                var newSequenceId = $(this).index() + 1;
+
+                sequenceData.push({
+                    category_id: categoryId,
+                    sequence_id: newSequenceId
+                });
+            });
+
+            $.ajax({
+                url: "{% url 'bulk_update_sequence_categories' %}",  // Replace with your view URL
+                type: "POST",
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF Token for Django
+                },
+                data: {
+                    sequence_data: JSON.stringify(sequenceData)
+                },
+                success: function (response) {
+                    catSequenceChanged = false;
+                    //alert(response.message);
+                    location.reload();  // Reload the page after saving
+                },
+                error: function (xhr, status, error) {
+                    console.error("An error occurred: ", error);
+                    alert("Failed to update category sequence. Please try again.");
+                }
+            });
+        });
+
+
+
+        //////////////////////////////////Template Drag sequence starts here//////////////////////////////////////
+        var temIsDragging = false;
+        var temSequenceChanged = false;
+
+        // Initialize sortable functionality for templates
+        $("#sortable-templates").sortable({
+            update: function (event, ui) {
+                temIsDragging = true;
+                temSequenceChanged = true;
+                $("#saveSequenceBtnTemplates").prop("disabled", false);
+            },
+            stop: function (event, ui) {
+                setTimeout(function () {
+                    temIsDragging = false;
+                }, 100);
+            }
+        }).disableSelection();
+
+        $("#sortable-templates tr").click(function(event) {
+            if (!temIsDragging) {
+                var templateId = $(this).attr("id").replace("template_", "");
+
+                var redirectUrl = '/view_template_sections/template_id'
+                    .replace('template_id', templateId)
+
+                window.location.href = redirectUrl;
+            }
+        });
+
+        // Save button click event for categories
+        $("#saveSequenceBtnTemplates").click(function () {
+            var sequenceData = [];
+
+            $("#sortable-templates tr").each(function () {
+                var templateId = $(this).attr("id").replace("template_", "");
+                var newSequenceId = $(this).index() + 1;
+
+                sequenceData.push({
+                    template_id: templateId,
+                    sequence_id: newSequenceId
+                });
+            });
+
+            $.ajax({
+                url: "{% url 'bulk_update_sequence_templates' %}",  // Replace with your view URL
+                type: "POST",
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF Token for Django
+                },
+                data: {
+                    sequence_data: JSON.stringify(sequenceData)
+                },
+                success: function (response) {
+                    temSequenceChanged = false;
+                    //alert(response.message);
+                    location.reload();  // Reload the page after saving
+                },
+                error: function (xhr, status, error) {
+                    console.error("An error occurred: ", error);
+                    alert("Failed to update template sequence. Please try again.");
+                }
+            });
+        });
+
+
+        // Warn the user if they try to navigate away without saving
+        $(window).on('beforeunload', function () {
+            if (catSequenceChanged) {
+                return "You have unsaved changes for category sequence. Are you sure you want to leave without saving?";
+            }
+            if (temSequenceChanged) {
+                return "You have unsaved changes template sequence. Are you sure you want to leave without saving?";
+            }
+        });
+
+
+
+
+    });	
+
+    function validateFileType(form) {
+        const fileInput = form.querySelector('input[name="file"]');
+        const filePath = fileInput.value;
+
+        const allowedExtensions = /(\.docx)$/i;
+        if (!allowedExtensions.exec(filePath)) {
+            alert('Please upload a file with .docx extension only.');
+            fileInput.value = '';
+            return false;
+        }
+
+        return true;
+    }
+</script>
+
+{% for template in templates %}
+<script>
+    function DuplicateValidateFileType{{ template.id }}(form) {
+        const fileInput = form.querySelector('input[name="file"]');
+        const filePath = fileInput.value;
+        const allowedExtensions = /(\.docx)$/i;
+
+        if (!allowedExtensions.exec(filePath)) {
+            alert('Please upload a file with .docx extension only.');
+            fileInput.value = '';
+            return false;
+        }
+
+        return true;
+    }
+    
+    function UpdateValidateFileType{{ template.id }}(form) {
+        const fileInput = form.querySelector('input[name="file"]');
+        const filePath = fileInput.value;
+        if (filePath) { 
+            const allowedExtensions = /(\.docx)$/i;
+
+            if (!allowedExtensions.exec(filePath)) {
+                alert('Please upload a file with .docx extension only.');
+                fileInput.value = '';
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+</script>
+{% endfor %}
+
+<script>
+    function redirectToChildCategories(event, categoryId) {
+
+        event.stopPropagation();
+        window.location.href = `{% url 'admin_child_categories' 0 %}`.replace('0', categoryId);
+    }
+
+    function redirectToTemplateSections(event, templateId) {
+        event.stopPropagation();
+        window.location.href = `{% url 'view_template_sections' 0 %}`.replace('0', templateId);
+    }
+</script>
+{% endblock %}
+

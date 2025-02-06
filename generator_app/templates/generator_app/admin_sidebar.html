@@ -1,0 +1,31 @@
+<!--  Profile Sidebar Starts -->
+<nav class="dashboard-menu">
+    <ul>
+        <li>
+            <a href="{% url 'admin_categories' %}" class="btn btn-ns btn-ns-secondary" id="manage-categories-btn">
+                <i class="fas fa-bookmark"></i>
+                <span>Manage Categories</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'user_listing' %}" class="btn btn-ns btn-ns-secondary" id="manage-users-btn">
+                <i class="fa-solid fa-user"></i>
+                <span>Manage Users</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'user_dashboard' %}" class="btn btn-ns btn-ns-secondary" id="login-as-user-btn">
+                <i class="fas fa-user-friends"></i>
+                <span>User Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'logout' %}" class="btn btn-ns btn-ns-secondary" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </li>
+
+    </ul>
+</nav>
+<!-- / Profile Sidebar Ends -->

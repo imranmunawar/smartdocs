@@ -1,0 +1,92 @@
+from django.urls import path, include 
+from . import views
+from django.conf.urls import handler404
+from django.shortcuts import render
+
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)
+
+handler404 = custom_404
+
+admin_patterns = [
+    path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('templates/', include([
+        path('', views.admin_template_list, name='admin_template_list'),
+        path('<int:template_id>/', views.admin_template_management, name='admin_template_management'),
+        path('<int:template_id>/update/', views.admin_template_update, name='admin_template_update'),
+        path('<int:template_id>/sections/', views.admin_template_sections, name='admin_template_sections'),
+    ])),
+    path('users/', include([
+        path('', views.admin_user_list, name='admin_user_list'),
+        path('<int:user_id>/', views.admin_user_management, name='admin_user_management'),
+        path('roles/', views.admin_role_management, name='admin_role_management'),
+    ])),
+    path('settings/', views.admin_settings, name='admin_settings'),
+]
+
+urlpatterns = [
+    path("", views.login2, name='login2'),
+    path('', include('django_sso.sso_service.urls')),
+    path('login2', views.login2, name='login2'),
+    path('categories/<int:parent_category_id>', views.child_categories_page, name='child_categories'),
+    path('categories', views.categories_page, name='categories'),
+    path('logout', views.logout_view, name='logout'),
+    path('user_dashboard', views.user_dashboard, name='user_dashboard'),
+    path('document/<int:document_id>', views.document_view, name='document'),
+    path('document/<int:document_id>/<int:section_id>', views.document_section_view, name='document_section_view'),
+    path('categories/create_document', views.create_document_view, name='create_document'),
+    path('create_or_update_answer', views.create_or_update_answer_view, name='create_or_update_answer_view'),
+    path('get_section_progress/<int:section_id>/<int:user_document_id>', views.get_section_progress, name='get_section_progress'),
+    path('get_parent_section_progress/<int:section_id>/<int:user_document_id>', views.get_parent_section_progress, name='get_parent_section_progress'),
+    path('review/<int:document_id>', views.document_review_view, name='document_review_view'),
+    path('get_subsection_progress/<int:subsection_id>/<int:user_document_id>', views.get_subsection_progress, name='get_subsection_progress'),
+    path('duplicate_document', views.duplicate_document, name='duplicate_document'),
+    path('download_document/<int:user_document_id>', views.download_document, name='download_document' ),
+    path('admin_categories/<int:parent_category_id>', views.admin_child_categories_page, name='admin_child_categories'),
+    path('admin_categories', views.admin_categories_page, name='admin_categories'),
+    path('create_template', views.create_template_view, name='create_template'),
+    path('duplicate_template', views.duplicate_template, name='duplicate_template'),
+    path('create_category', views.create_category_view, name='create_category'),
+    path('view_template_sections/<int:template_id>', views.view_template_sections, name='view_template_sections'),
+    path('add_template_section', views.add_template_section, name='add_template_section'),
+    path('view_section_subsections/<int:template_id>/<int:section_id>', views.view_section_subsections, name='view_section_subsections'),
+    path('add_template_subsection', views.add_template_subsection, name='add_template_subsection'),
+    path('get_root_questions/<int:template_id>/<int:section_id>', views.get_root_questions, name='get_root_questions'),
+    path('get_template_questions/<int:template_id>', views.get_questins_and_placeholders, name='get_template_questions'),
+    path('create_question', views.create_question, name='create_question'),
+    path('get_child_questions/<int:template_id>/<int:section_id>/<int:question_id>', views.get_child_questions, name='get_child_questions'),
+    path('create_subquestion', views.create_subquestion, name='create_subquestion'),
+    path('update_question', views.update_question, name='update_question'),
+    path('remove_question', views.remove_question, name='remove_question'),
+    path('remove_section', views.remove_section, name='remove_section'),
+    path('user_listing', views.user_listing, name='user_listing'),
+    path('create_user', views.create_user, name='create_user'),
+    path('update_user', views.update_user, name='update_user'),
+    path('create_or_update_image_answer_view', views.create_or_update_image_answer_view, name='create_or_update_image_answer_view'),
+    path('update_template', views.update_template, name='update_template'),
+    path('get_ai_answer', views.get_ai_answer, name='get_ai_answer'),
+    path('update_template_section', views.update_template_section, name='update_template_section'),
+    path('remove_document', views.remove_document, name='remove_document'),
+    path('get_user_documents/<int:user_id>', views.get_user_documents, name='get_user_documents'),
+    path('remove_user', views.remove_user, name='remove_user'),
+    path('remove_option', views.remove_option, name='remove_option'),
+    path('edit_option', views.edit_option, name='edit_option'),
+    path('download_dummy_document/', views.download_dummy_document, name='download_dummy_document'),
+    path('remove_template/', views.remove_template, name='remove_template'),
+    path('remove_category/', views.remove_category, name='remove_category'),
+    path('serve-image-from-s3/<str:file_name>/', views.serve_image_from_s3, name='serve_image_from_s3'),
+    path('update_profile/', views.update_profile, name='update_profile'),
+    path('load_login/', views.load_login, name='load_login'),
+    path('download_document_pdf/<int:user_document_id>', views.download_document_pdf, name='download_document_pdf' ),
+    path('download_dummy_document_pdf/', views.download_dummy_document_pdf, name='download_dummy_document_pdf'),
+    path('delete_empty_answer', views.delete_empty_answer, name='delete_empty_answer'),
+    path('download_pdf_test_endpoint', views.download_pdf_test_endpoint, name='download_pdf_test_endpoint'),
+    path('health_check', views.health_check, name='health_check'),
+    path('update_category', views.update_category, name='update_category'),
+    path('bulk_update_sequence_questions', views.bulk_update_sequence_questions, name='bulk_update_sequence_questions'),
+    path('bulk_update_sequence_sections', views.bulk_update_sequence_sections, name='bulk_update_sequence_sections'),
+    path('bulk_update_sequence_categories', views.bulk_update_sequence_categories, name='bulk_update_sequence_categories'),
+    path('bulk_update_sequence_templates', views.bulk_update_sequence_templates, name='bulk_update_sequence_templates'),
+    path('get_question_video', views.get_question_video, name='get_question_video'),
+    path('admin/', include((admin_patterns, 'admin'), namespace='admin')),
+]

@@ -1,0 +1,53 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="admin-dashboard-wrapper">
+    <div class="admin-metrics-container">
+        <div class="admin-metric-panel">
+            <h3 class="metric-panel-title">Template Overview</h3>
+            <div class="metric-stats-grid">
+                <div class="metric-item">
+                    <span class="metric-label">Active Templates</span>
+                    <span class="metric-value">{{ admin_metrics.active_template_count }}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Pending Reviews</span>
+                    <span class="metric-value">{{ admin_metrics.pending_review_count }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="admin-metric-panel">
+            <h3 class="metric-panel-title">User Analytics</h3>
+            <div class="metric-stats-grid">
+                <div class="metric-item">
+                    <span class="metric-label">Total Users</span>
+                    <span class="metric-value">{{ admin_metrics.total_user_count }}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Active Sessions</span>
+                    <span class="metric-value">{{ admin_metrics.active_session_count }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="admin-actions-container">
+        <div class="admin-quick-actions-grid">
+            <button class="admin-action-button" onclick="handleTemplateManagement()">
+                <i class="fas fa-file-alt"></i>
+                <span>Template Management</span>
+            </button>
+            <button class="admin-action-button" onclick="handleUserManagement()">
+                <i class="fas fa-users"></i>
+                <span>User Management</span>
+            </button>
+            <button class="admin-action-button" onclick="handleSystemSettings()">
+                <i class="fas fa-cogs"></i>
+                <span>System Settings</span>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %} 
