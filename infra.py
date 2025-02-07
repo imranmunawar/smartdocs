@@ -4,7 +4,7 @@ min_instance = 2
 max_instance = 4
 machine_type_redis = "e2-small"
 machine_type_postgres = "e2-medium"
-domain_name = "docs.planetwealth.com"
+domain_name = "docs.smartdocsealth.com"
 
 SECRET_KEY = lf.gcp.SecretManagerSecret("secret-key")
 SSO_TOKEN = lf.gcp.SecretManagerSecret("sso-token")
@@ -17,11 +17,11 @@ if lf.environment == "dev":
     max_instance = 2
     machine_type_redis = "e2-micro"
     machine_type_postgres = "e2-micro"
-    domain_name = f"{'dev.'}docs.planetwealth.com"
+    domain_name = f"{'dev.'}docs.smartdocsealth.com"
     ENVIRONMENT = "dev"
 
 if lf.environment == "stage":
-    domain_name = f"{'stage.'}docs.planetwealth.com"
+    domain_name = f"{'stage.'}docs.smartdocsealth.com"
     ENVIRONMENT = "stage"
     min_instance = 1
     max_instance = 3

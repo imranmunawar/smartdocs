@@ -26,8 +26,8 @@ import launchflow as lf
 from . import env_values
 
 
-# ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", ".cpl.planetwealth.com"]
-ALLOWED_HOSTS = [".dc.planetwealth.com", "0.0.0.0"]
+# ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", ".cpl.smartdocsealth.com"]
+ALLOWED_HOSTS = [".dc.smartdocsealth.com", "0.0.0.0"]
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -50,7 +50,7 @@ STATIC_URL = "/static/"
 SSO = {
     "ROOT": os.getenv("SSO_ROOT_URL"),
     "TOKEN": os.getenv("SSO_TOKEN"),
-    "EVENT_ACCEPTOR_CLASS": "generator_app.middleware.SSOEventAcceptor",
+    "EVENT_ACCEPTOR_CLASS": "smartdocs_app.middleware.SSOEventAcceptor",
 }
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')

@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'generator_app',
+    'smartdocs_app',
     'django_sso.sso_service',
     'storages',
 ]
@@ -60,9 +60,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'generator_app.middleware.FileCleanupMiddleware',
-    'generator_app.middleware.AutoLogoutMiddleware',
-    'generator_app.middleware.SessionCleanupMiddleware',
+    'smartdocs_app.middleware.FileCleanupMiddleware',
+    'smartdocs_app.middleware.AutoLogoutMiddleware',
+    'smartdocs_app.middleware.SessionCleanupMiddleware',
 ]
 
 # Django variable. URL for unlogged users. We redirect it to our view.
@@ -77,7 +77,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join('generator_app', 'templates')
+            os.path.join('smartdocs_app', 'templates')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -131,15 +131,15 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'generator_app.CustomUser'
+AUTH_USER_MODEL = 'smartdocs_app.CustomUser'
 
-AUTHENTICATION_BACKENDS = ['generator_app.backends.EmailBackend']
+AUTHENTICATION_BACKENDS = ['smartdocs_app.backends.EmailBackend']
 
-SAVED_DOCUMENTS = os.path.join(BASE_DIR, 'generator_app', 'documents')
+SAVED_DOCUMENTS = os.path.join(BASE_DIR, 'smartdocs_app', 'documents')
 
-DOCUMENT_TEMPLATE_FILES = os.path.join(BASE_DIR, 'generator_app', 'template_files')
+DOCUMENT_TEMPLATE_FILES = os.path.join(BASE_DIR, 'smartdocs_app', 'template_files')
 
-IMAGE_FILES = os.path.join(BASE_DIR, 'generator_app', 'static', 'document_images')
+IMAGE_FILES = os.path.join(BASE_DIR, 'smartdocs_app', 'static', 'document_images')
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 

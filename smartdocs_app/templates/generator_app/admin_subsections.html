@@ -1,0 +1,398 @@
+{% extends 'smartdocs_app/base.html' %}
+{% load static %}
+{% block sidebar %}
+{% include "smartdocs_app/admin_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+    <div class="row navbar-secondary">
+        <div class="col-lg-8 col-md-8 col-sm-8">
+            <div class="form-inline">
+                <a href="/view_template_sections/{{template_id}}" class="btn btn-sm btn-custom-primary" style="margin-top: -7px;"><i class="fa fa-chevron-left"></i> Return</a>
+                <h3 style="display: inline-block; margin-left: 10px;">SubSections</h3>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-4" style="text-align: right; margin-top: -7px;">
+            <a href="#create_subsection_modal" class="btn btn-sm btn-custom-primary" data-bs-toggle="modal">New SubSection</a>
+            <button id="saveSequenceBtnSections" class="btn btn-sm btn-custom-primary" disabled>Save Section Sequence</button>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            {% include 'smartdocs_app/messages.html' %}
+        </div>
+        <div class="col-12 text-center">
+
+            {% if category_hierarchy|length > 0 %}
+            <div class="card">
+                <div class="card-body" style="padding: 10px;">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12 col-xl-12 d-flex align-items-center" style="text-align: left;">
+                            {% if category_hierarchy|length > 0 %}
+                                <a href="{% url 'admin_categories' %}">Categories</a>
+                            {% else %}
+                                <a href="{% url 'admin_categories' %}"><h4 style="margin-right: 10px; margin-left: 10px; padding-top: 5px;">Categories</h4></a>
+                            {% endif %}
+                            <div class="d-flex flex-wrap">
+                                {% for category_h in category_hierarchy %}
+                                <div class="d-flex align-items-center mr-3">
+
+                                    {% if forloop.last %}
+                                        <p style="margin: 0 5px;">&gt;</p>
+                                        {% if category_h.type == 'template' %}
+                                            <a href="{% url 'view_template_sections' template_id %}" class="category-link"><h4 style="margin-right: 10px; margin-left: 10px; padding-top: 6px;">{{ category_h.name }}</h4></a>
+                                        {% elif category_h.type == 'section' %}
+                                            <a href="{% url 'view_section_subsections' template_id section_id %}" class="category-link"><h4 style="margin-right: 10px; margin-left: 10px; padding-top: 6px;">{{ category_h.name }}</h4></a>
+                                        {% else %}
+                                            <a href="{% url 'admin_child_categories' category_h.id %}" class="category-link"><h4 style="margin-right: 10px; margin-left: 10px; padding-top: 6px;">{{ category_h.name }}</h4></a>
+                                        {% endif %}     
+                                    {% else %}
+                                        <p style="margin: 0 5px;">&gt;</p>
+                                        {% if category_h.type == 'template' %}
+                                            <a href="{% url 'view_template_sections' template_id %}" class="category-link">{{ category_h.name }}</a>
+                                        {% elif category_h.type == 'section' %}
+                                            <a href="{% url 'view_section_subsections' template_id section_id %}" class="category-link">{{ category_h.name }}</a>
+                                        {% else %}
+                                            <a href="{% url 'admin_child_categories' category_h.id %}" class="category-link">{{ category_h.name }}</a>
+                                        {% endif %}
+                                        
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>											
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-body" style="padding: 10px;">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12 col-xl-12 d-flex align-items-center" style="text-align: left;">                            
+                            <h3 style="margin-right: 10px; margin-left: 10px; padding-top: 6px;">{{navigation_text}}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+
+        </div>
+        {% if not subsections%}
+        <div class="col-12 text-center">
+            <div class="card">
+                <div class="card-body" style="padding: 100px;">
+                    <h3 class="font-bold text-dark">No record found</h3>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div id="pat_appointments" class="tab-pane fade show active">
+                <div class="card card-table mb-0">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Sub Sections</th>
+                                        <th>Status</th>
+										<th>Sequence Number</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sortable-sections">
+                                    {% for section in subsections%}
+                                    <tr id="section_{{ section.id }}" data-sequence="{{ section.sequence_id }}" style="cursor: pointer;">
+                                        <td>{{ section.name }}</td>
+                                        <td>
+                                            {% if section.is_active %}
+                                                <span class="badge rounded-pill bg-success-light">Active</span>
+                                            {% else %}
+                                                <span class="badge rounded-pill bg-danger-light">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ section.sequence_id }}</td>
+                                        <td>
+                                            <div class="table-action">
+
+                                                <a href="#update_section_modal_{{ section.id }}" class="btn btn-sm bg-primary-light" data-bs-toggle="modal" tooltip="Edit Subsection" onclick="event.stopPropagation();">
+                                                    <i class="fa-solid fa-wrench"></i>
+                                                </a>
+                                                {% if can_remove %}
+                                                <a href="#remove_section_modal_{{ section.id }}" class="btn btn-sm bg-danger-light" data-bs-toggle="modal" tooltip="Delete Subsection" onclick="event.stopPropagation();">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </a>
+                                                {% else %}
+                                                <a href="#non_removal_modal" class="btn btn-sm bg-danger-light" data-bs-toggle="modal" tooltip="Delete Question" onclick="event.stopPropagation();">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {%endfor%}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    </div>
+    </div>
+    </div>
+    </div>
+        
+    <div class="modal fade" id="create_subsection_modal" style="display: none; z-index:100000" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="template">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-content p-2">
+                        <form  action="/add_template_subsection" method="post" onsubmit="return validateNewSubSectionForm(this)">
+                            {% csrf_token %}
+                            <h4 class="modal-title">Create Sub-Section</h4>
+                            <div class="mb-3">
+                                    <label class="mb-2">Please enter the name of the Sub-Section</label>
+                                    <input type="text" name="subsection_name" class="form-control" placeholder="Sub Section" required>
+                                    <input type="text" name="template_id" class="form-control" value="{{template_id}}" style="display: none;">
+                                    <input type="text" name="section_id" class="form-control" value="{{section_id}}" style="display: none;">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="is_active">Is Section Active?:</label>
+                                <select name="is_active" id="is_active" class="form-select form-control">
+                                    <option value="True">Yes</option>
+                                    <option value="False">No</option>
+                                </select>
+                            </div>
+
+							<div class="mb-3">
+                                <label for="vimeo_link">Vimeo Embed Code</label>
+                                <input type="text" class="form-control" id="vimeo_link" name="vimeo_link">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="video_timestamp">Video Timestamp (seconds):</label>
+                                <input type="number" name="video_timestamp" id="video_timestamp" class="form-control" min="0" placeholder="Enter start time in seconds">
+                            </div>
+
+                            <div class="mb-3">
+								<label for="sequence_id">Sequence ID:</label>
+								<input type="number" name="sequence_id" id="sequence_id" class="form-control" value="{{max_count}}" min="0">
+							</div>
+
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary">Create Sub-Section </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REMOVE SECTIONS MODALS-->
+    {% for section in subsections%}
+    <div class="modal fade" id="remove_section_modal_{{section.id}}" style="display: none; z-index:100000" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="template">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-content p-2">
+                        <form  action="/remove_section" method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                            <h4 class="modal-title">Are you sure you want to remove the section along with all the subsections, child questions and options</h4>
+                            </div>
+                            <input type="text" name="section_id" class="form-control" value="{{section.id}}" style="display: none;">
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel </button>
+                                <button type="submit" class="btn btn-danger">Delete </button>
+                            </div>
+                            
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <!-- REMOVE SECTIONS MODALS-->
+
+    <!-- UPDATE SECTIONS MODALS-->
+    {% for section in subsections%}
+    <div class="modal fade" id="update_section_modal_{{section.id}}" style="display: none; z-index:100000" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="template">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-content p-2">
+                        <form  action="/update_template_section" method="post">
+                            {% csrf_token %}
+                            <h4 class="modal-title">Update Section</h4>
+                            <div class="mb-3">
+                                    <label class="mb-2">Please enter the name of the Section</label>
+                                    <input type="text" name="section_name" class="form-control" placeholder="Section" value="{{section.name}}" required>
+                                    <input type="text" name="section_id" class="form-control" value="{{section.id}}" style="display: none;">
+                            </div>
+                            <div class="mb-3">
+                                <label for="is_active">Is Section Active?:</label>
+                                <select name="is_active" id="is_active" class="form-select form-control">
+                                    <option value="True" {% if section.is_active %}selected{% endif %}>Yes</option>
+                                    <option value="False" {% if not section.is_active %}selected{% endif %}>No</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+								<label for="vimeo_link">Vimeo Embed Code</label>
+								<input type="text" name="vimeo_link" id="vimeo_link" class="form-control" value="{{section.vimeo_link}}">
+							</div>
+
+                            <div class="mb-3">
+                                <label for="video_timestamp">Video Timestamp (seconds):</label>
+                                <input type="number" name="video_timestamp" id="video_timestamp" class="form-control" min="0" value="{{section.vimeo_timestamp}}" placeholder="Enter start time in seconds">
+                            </div>
+
+							<div class="mb-3">
+								<label for="sequence_id">Sequence ID:</label>
+								<input type="number" name="sequence_id" id="sequence_id" class="form-control" value="{{section.sequence_id}}" min="0">
+							</div>
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary">Update Section </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <!-- UPDATE SECTIONS MODALS-->
+
+    <!-- NON REMOVAL MESSAGE-->
+    <div class="modal fade" id="non_removal_modal" style="display: none; z-index: 100000;" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h4 class="modal-title">The provided item cannot be removed because there are documents created that are associated with this template. However, you can make it inactive by using the edit function.</h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- NON REMOVAL MESSAGE-->
+
+{% endblock %}
+
+{% block static %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+    $(document).ready(function() {
+        $("#manage-categories-btn").addClass("btn-ns-primary");
+        $("#manage-categories-btn").removeClass("btn-ns-secondary");
+
+
+        var isDragging = false;
+        var sequenceChanged = false;
+
+        $("#sortable-sections").sortable({
+            update: function (event, ui) {
+                isDragging = true;
+                sequenceChanged = true;
+                $("#saveSequenceBtnSections").prop("disabled", false);
+            },
+            stop: function (event, ui) {
+                setTimeout(function () {
+                    isDragging = false;
+                }, 100);
+            }
+        }).disableSelection();
+
+        $("#sortable-sections tr").click(function(event) {
+            if (!isDragging) {
+                var templateId = "{{ template_id }}";
+                var sectionId = $(this).attr("id").replace("section_", "");
+
+                var redirectUrl = '/get_root_questions/template_id/section_id'
+                    .replace('template_id', templateId)
+                    .replace('section_id', sectionId)
+
+                window.location.href = redirectUrl;
+            }
+        });
+
+        $("#saveSequenceBtnSections").click(function () {
+            var sequenceData = [];
+
+            $("#sortable-sections tr").each(function () {
+                var sectionId = $(this).attr("id").replace("section_", "");
+                var newSequenceId = $(this).index() + 1;
+
+                sequenceData.push({
+                    section_id: sectionId,
+                    sequence_id: newSequenceId
+                });
+            });
+
+            $.ajax({
+                url: "{% url 'bulk_update_sequence_sections' %}",
+                type: "POST",
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                data: {
+                    sequence_data: JSON.stringify(sequenceData)
+                },
+                success: function (response) {
+                    sequenceChanged = false;
+                    alert(response.message);
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error("An error occurred: ", error);
+                    alert("Failed to update section sequence. Please try again.");
+                }
+            });
+        });
+
+        $(window).on('beforeunload', function () {
+            if (sequenceChanged) {
+                return "You have unsaved changes. Are you sure you want to leave without saving?";
+            }
+        });
+
+    });
+
+
+    function validateNewSubSectionForm(form) {
+        const subsectionName = form.subsection_name.value.trim();
+        if (subsectionName === "") {
+                $('#create_subsection_modal').modal('toggle');
+            title = 'Error';
+            icon = 'error';
+            text = "SubSection name cannot be empty.";
+            Swal.fire({
+                title: title,
+                icon: icon,
+                html: text,
+                confirmButtonText: 'OK',
+                allowOutsideClick: false, 
+                allowEscapeKey: false 
+            }).then((result) => {
+                $('#create_subsection_modal').modal('toggle');
+            });
+            return false;
+        }
+        return true;
+    }
+
+    function redirectToRootQuestions(event, url) {
+        event.stopPropagation();
+        window.location.href = url;
+    }
+</script>
+{% endblock %}

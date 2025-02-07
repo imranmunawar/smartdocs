@@ -39,7 +39,7 @@ SSO = {
 	# Specify application token obtained in the SSO server admin panel under subordinated services (REQUIRED)
 	'TOKEN': os.getenv('SSO_TOKEN'),
 
-    'EVENT_ACCEPTOR_CLASS': 'generator_app.middleware.SSOEventAcceptor'
+    'EVENT_ACCEPTOR_CLASS': 'smartdocs_app.middleware.SSOEventAcceptor'
 
 }
 
@@ -65,7 +65,7 @@ DATABASES = {
 
 STATICFILES_DIRS = [
     # Use the 'static' directory inside your app
-    os.path.join(BASE_DIR, 'generator_app', 'static'),
+    os.path.join(BASE_DIR, 'smartdocs_app', 'static'),
 ]
 
 # URL pattern for static files

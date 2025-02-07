@@ -11,13 +11,13 @@ services:
     volumes:
       - /tmp/app/postgresql:/var/run/postgresql
       - ./db:/var/lib/postgresql/data
-  document_generator:
-    image: document_generator:latest
+  smartdocs:
+    image: smartdocs:latest
     build:
       context: .
       dockerfile: ./Dockerfile
     env_file:
-      - ./document_generator/.env
+      - ./smartdocs/.env
     command: ["/app/entrypoint.sh"]
     ports:
       - "8000:8000"
